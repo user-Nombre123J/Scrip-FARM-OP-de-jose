@@ -1,4 +1,3 @@
-
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
@@ -10,67 +9,75 @@ local Camera = workspace.CurrentCamera
 getgenv().AutoKillTargets = getgenv().AutoKillTargets or {}
 getgenv().AutoKillEnabled = true
 
-
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "AutoKillMenu"
+screenGui.Name = "Priv CazanovaMenu"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = game.CoreGui
-
 
 local mainFrame = Instance.new("Frame")
 mainFrame.Size = UDim2.new(0,650,0,400)
 mainFrame.Position = UDim2.new(0.5,-325,0.5,-200)
-mainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)  -- Fondo negro
+mainFrame.BackgroundColor3 = Color3.fromRGB(20,20,20)
 mainFrame.BorderSizePixel = 0
 mainFrame.Active = true
 mainFrame.Parent = screenGui
-
 
 local corner = Instance.new("UICorner")
 corner.CornerRadius = UDim.new(0,10)
 corner.Parent = mainFrame
 
--- T铆tulo (bot贸n para minimizar y arrastrar)
 local titleBar = Instance.new("Frame")
 titleBar.Size = UDim2.new(1,0,0,30)
-titleBar.BackgroundColor3 = Color3.fromRGB(144,0,194)  -- Bot贸n de minimizar y abrir el men煤 en rojo
+titleBar.BackgroundColor3 = Color3.fromRGB(200,30,30)
 titleBar.Parent = mainFrame
 
 local titleButton = Instance.new("TextButton")
 titleButton.Size = UDim2.new(1,0,1,0)
 titleButton.BackgroundTransparency = 1
-titleButton.Text = "ATLASXKILLS"  -- Aqu铆 cambiamos el texto por "HONNY KILLS"
-titleButton.TextColor3 = Color3.fromRGB(0,150,80)  -- Letras blancas
+titleButton.Text = "ATLASXKILLS"
+titleButton.TextColor3 = Color3.fromRGB(255,150,80)
 titleButton.Font = Enum.Font.GothamBold
 titleButton.TextSize = 20
 titleButton.TextXAlignment = Enum.TextXAlignment.Center
 titleButton.Parent = titleBar
 
-
 local buttonContainer = Instance.new("Frame")
 buttonContainer.Size = UDim2.new(0,400,1,-30)
 buttonContainer.Position = UDim2.new(0,0,0,30)
-buttonContainer.BackgroundColor3 = Color3.fromRGB(0, 0, 0)  -- Fondo negro
+buttonContainer.BackgroundColor3 = Color3.fromRGB(25,25,25)
 buttonContainer.BorderSizePixel = 0
 buttonContainer.Parent = mainFrame
 
--- Botones
 local buttonNames = {
     "Activar pegar muerto",
     "Auto Kill a todos",
     "Auto Kill a jugadores",
-    "Espectear"
+    "Espectear",
+    "Auto Reset",
+    "Auto comer piñas"
 }
 
 local yPosition = 20
 local buttons = {}
 
--- Funci贸n para cambiar el color del bot贸n (verde y original)
-local function toggleButtonColor(button)
-    if button.BackgroundColor3 == Color3.fromRGB(0, 150, 80) then
-        button.BackgroundColor3 = Color3.fromRGB(0, 0, 0)  -- Color negro
-    else
-        button.BackgroundColor3 = Color3.fromRGB(0, 255, 0)  -- Cambiar a verde
+-- Estados de los botones
+local estados = {
+    ["Activar pegar muerto"] = false,
+    ["Auto Kill a todos"] = false,
+    ["Auto Kill a jugadores"] = false,
+    ["Espectear"] = false,
+    ["Auto Reset"] = false,
+    ["Auto comer piñas"] = false
+}
+
+-- Función para actualizar colores
+local function updateButtonColors()
+    for name, btn in pairs(buttons) do
+        if estados[name] then
+            btn.BackgroundColor3 = Color3.fromRGB(0, 200, 0) -- Verde activo
+        else
+            btn.BackgroundColor3 = Color3.fromRGB(40,40,40) -- Gris inactivo
+        end
     end
 end
 
@@ -78,28 +85,20 @@ for _, name in ipairs(buttonNames) do
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(0,360,0,40)
     btn.Position = UDim2.new(0,20,0,yPosition)
-    btn.BackgroundColor3 = Color3.fromRGB(0, 0, 0)  -- Fondo negro
     btn.Text = name
-    btn.TextColor3 = Color3.fromRGB(255, 255, 255)  -- Letras blancas
+    btn.TextColor3 = Color3.fromRGB(255,255,255)
     btn.Font = Enum.Font.Gotham
     btn.TextSize = 18
     btn.Parent = buttonContainer
-
     buttons[name] = btn
-
-    -- Cambiar color al presionar el bot贸n
-    btn.MouseButton1Click:Connect(function()
-        toggleButtonColor(btn)
-    end)
-
     yPosition = yPosition + 50
 end
-
+updateButtonColors()
 
 local autoKillPanel = Instance.new("Frame")
 autoKillPanel.Size = UDim2.new(0,250,0,360)
 autoKillPanel.Position = UDim2.new(0,400,0,30)
-autoKillPanel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)  
+autoKillPanel.BackgroundColor3 = Color3.fromRGB(25,25,25)
 autoKillPanel.BorderSizePixel = 0
 autoKillPanel.Visible = false
 autoKillPanel.Active = true
@@ -109,8 +108,8 @@ autoKillPanel.Parent = mainFrame
 local titleAK = Instance.new("TextLabel")
 titleAK.Size = UDim2.new(1,0,0,30)
 titleAK.BackgroundColor3 = Color3.fromRGB(50,50,50)
-titleAK.Text = "Selecionar Enemigo"
-titleAK.TextColor3 = Color3.fromRGB(255,255,255)  
+titleAK.Text = "Selecionar Jugador kill"
+titleAK.TextColor3 = Color3.fromRGB(255,255,255)
 titleAK.Font = Enum.Font.SourceSansBold
 titleAK.TextSize = 20
 titleAK.Parent = autoKillPanel
@@ -133,7 +132,7 @@ local function updatePlayerButtons()
             button.Position = UDim2.new(0,5,0,ySize)
             button.BackgroundColor3 = getgenv().AutoKillTargets[plr.Name] and Color3.fromRGB(150,0,0) or Color3.fromRGB(70,70,70)
             button.Text = plr.Name
-            button.TextColor3 = Color3.fromRGB(255,255,255)  -- Letras blancas
+            button.TextColor3 = Color3.fromRGB(255,255,255)
             button.Font = Enum.Font.SourceSans
             button.TextSize = 18
             button.Parent = scrollingFrame
@@ -157,11 +156,10 @@ Players.PlayerAdded:Connect(updatePlayerButtons)
 Players.PlayerRemoving:Connect(updatePlayerButtons)
 updatePlayerButtons()
 
-
 local spectatePanel = Instance.new("Frame")
 spectatePanel.Size = UDim2.new(0,250,0,360)
 spectatePanel.Position = UDim2.new(0,400,0,30)
-spectatePanel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)  -- Fondo negro
+spectatePanel.BackgroundColor3 = Color3.fromRGB(25,25,35)
 spectatePanel.BorderSizePixel = 0
 spectatePanel.Visible = false
 spectatePanel.Active = true
@@ -171,8 +169,8 @@ spectatePanel.Parent = mainFrame
 local titleSpectate = Instance.new("TextLabel")
 titleSpectate.Size = UDim2.new(1,0,0,30)
 titleSpectate.BackgroundColor3 = Color3.fromRGB(50,50,70)
-titleSpectate.Text = "Espectear Jugadores"
-titleSpectate.TextColor3 = Color3.fromRGB(255,255,255)  -- Letras blancas
+titleSpectate.Text = "👁️‍🗨️ Espectear Jugadores"
+titleSpectate.TextColor3 = Color3.fromRGB(255,255,255)
 titleSpectate.Font = Enum.Font.SourceSansBold
 titleSpectate.TextSize = 20
 titleSpectate.Parent = spectatePanel
@@ -200,7 +198,7 @@ local function createSpectateButton(player)
     local button = Instance.new("TextButton")
     button.Size = UDim2.new(1,0,0,30)
     button.BackgroundColor3 = Color3.fromRGB(40,40,70)
-    button.TextColor3 = Color3.fromRGB(255,255,255)  -- Letras blancas
+    button.TextColor3 = Color3.fromRGB(255,255,255)
     button.Font = Enum.Font.Gotham
     button.TextSize = 14
     button.Text = player.DisplayName
@@ -225,10 +223,10 @@ local function createReturnSpectateButton()
     local button = Instance.new("TextButton")
     button.Size = UDim2.new(1,0,0,30)
     button.BackgroundColor3 = Color3.fromRGB(70,50,50)
-    button.TextColor3 = Color3.fromRGB(255,255,255)  
+    button.TextColor3 = Color3.fromRGB(255,255,255)
     button.Font = Enum.Font.GothamBold
     button.TextSize = 14
-    button.Text = "Dejar De espectear"
+    button.Text = "↺ Volver a mí"
     button.BorderSizePixel = 0
     button.Parent = scrollingSpectate
 
@@ -266,7 +264,6 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
-
 local function getHand()
     local char = Players.LocalPlayer.Character or Players.LocalPlayer.CharacterAdded:Wait()
     return char:FindFirstChild("RightHand") or char:FindFirstChild("Right Arm")
@@ -297,7 +294,6 @@ task.spawn(function()
     end
 end)
 
--- Variables para minimizar y drag
 local minimized = false
 local autoKillPanelWasVisible = false
 local spectatePanelWasVisible = false
@@ -339,62 +335,142 @@ titleButton.InputChanged:Connect(function(input)
 end)
 
 titleButton.MouseButton1Click:Connect(function()
-	if not dragging then
-		minimized = not minimized
-		if minimized then
-			autoKillPanelWasVisible = autoKillPanel.Visible
-			spectatePanelWasVisible = spectatePanel.Visible
-
-			TweenService:Create(mainFrame, TweenInfo.new(0.25), {Size = UDim2.new(0,150,0,30)}):Play()  -- Reducir el tama 0 9o del men  
-			buttonContainer.Visible = false
-			autoKillPanel.Visible = false
-			spectatePanel.Visible = false
-		else
-			TweenService:Create(mainFrame, TweenInfo.new(0.25), {Size = UDim2.new(0,650,0,400)}):Play()
-			buttonContainer.Visible = true
-			autoKillPanel.Visible = autoKillPanelWasVisible
-			spectatePanel.Visible = spectatePanelWasVisible
-		end
-	end
+    if not dragging then
+        minimized = not minimized
+        if minimized then
+            autoKillPanelWasVisible = autoKillPanel.Visible
+            spectatePanelWasVisible = spectatePanel.Visible
+            TweenService:Create(mainFrame, TweenInfo.new(0.25), {Size = UDim2.new(0,650,0,30)}):Play()
+            buttonContainer.Visible = false
+            autoKillPanel.Visible = false
+            spectatePanel.Visible = false
+        else
+            TweenService:Create(mainFrame, TweenInfo.new(0.25), {Size = UDim2.new(0,650,0,400)}):Play()
+            buttonContainer.Visible = true
+            autoKillPanel.Visible = autoKillPanelWasVisible
+            spectatePanel.Visible = spectatePanelWasVisible
+        end
+    end
 end)
 
+-- LOGICA DE BOTONES
+buttons["Activar pegar muerto"].MouseButton1Click:Connect(function()
+    estados["Activar pegar muerto"] = not estados["Activar pegar muerto"]
+    updateButtonColors()
+    if estados["Activar pegar muerto"] then
+        local urls = {
+            "https://raw.githubusercontent.com/SadOz8/Stuffs/refs/heads/main/Crack",
+            "https://raw.githubusercontent.com/SadOz8/Stuffs/refs/heads/main/Crack2",
+            "https://raw.githubusercontent.com/SadOz8/Stuffs/refs/heads/main/Crack3",
+            "https://raw.githubusercontent.com/SadOz8/Stuffs/refs/heads/main/Crack4",
+            "https://raw.githubusercontent.com/SadOz8/Stuffs/refs/heads/main/Crack5",
+            "https://raw.githubusercontent.com/SadOz8/Stuffs/refs/heads/main/Crack6"
+        }
+        for _, url in ipairs(urls) do
+            local success, response = pcall(function()
+                return game:HttpGet(url)
+            end)
+            if success and response then
+                pcall(loadstring(response))
+            else
+                warn("Erro ao cargar script: " .. url)
+            end
+        end
+    end
+end)
+
+buttons["Auto Kill a todos"].MouseButton1Click:Connect(function()
+    estados["Auto Kill a todos"] = not estados["Auto Kill a todos"]
+    updateButtonColors()
+    if estados["Auto Kill a todos"] then
+        local url = "https://raw.githubusercontent.com/SadOz8/Stuffs-2/refs/heads/main/Crack7"
+        local success, response = pcall(function()
+            return game:HttpGet(url)
+        end)
+        if success and response then
+            loadstring(response)()
+        else
+            warn("Error cargando script 'Auto Kill a todos'")
+        end
+    end
+end)
 
 buttons["Auto Kill a jugadores"].MouseButton1Click:Connect(function()
-    autoKillPanel.Visible = not autoKillPanel.Visible
-    if autoKillPanel.Visible then
+    estados["Auto Kill a jugadores"] = not estados["Auto Kill a jugadores"]
+    updateButtonColors()
+    autoKillPanel.Visible = estados["Auto Kill a jugadores"]
+    if estados["Auto Kill a jugadores"] then
         spectatePanel.Visible = false
     end
 end)
 
 buttons["Espectear"].MouseButton1Click:Connect(function()
-    spectatePanel.Visible = not spectatePanel.Visible
-    if spectatePanel.Visible then
+    estados["Espectear"] = not estados["Espectear"]
+    updateButtonColors()
+    spectatePanel.Visible = estados["Espectear"]
+    if estados["Espectear"] then
         autoKillPanel.Visible = false
     end
 end)
 
-
-buttons["Activar pegar muerto"].MouseButton1Click:Connect(function()
-    local url = "https://raw.githubusercontent.com/PheonixHub/ScripKillPaid/refs/heads/main/Auto%20matar"
-    local success, response = pcall(function()
-        return game:HttpGet(url)
-    end)
-    if success and response then
-        loadstring(response)()
+local autoResetThread = nil
+buttons["Auto Reset"].MouseButton1Click:Connect(function()
+    estados["Auto Reset"] = not estados["Auto Reset"]
+    updateButtonColors()
+    if estados["Auto Reset"] then
+        autoResetThread = task.spawn(function()
+            while estados["Auto Reset"] do
+                local char = LocalPlayer.Character
+                local hum = char and char:FindFirstChildOfClass("Humanoid")
+                if hum and hum.Health > 0 then
+                    hum.Health = 0
+                end
+                task.wait(1)
+            end
+        end)
     else
-        warn("Error cargando script 'Activar pegar muerto'")
+        if autoResetThread then
+            task.cancel(autoResetThread)
+            autoResetThread = nil
+        end
     end
 end)
 
-
-buttons["Auto Kill a todos"].MouseButton1Click:Connect(function()
-    local url = "https://raw.githubusercontent.com/PheonixHub/Auto-kill-all-/refs/heads/main/Auto%20kill%20para%20todos"
-    local success, response = pcall(function()
-        return game:HttpGet(url)
-    end)
-    if success and response then
-        loadstring(response)()
+-- AUTO COMER PIÑAS
+local autoPiniaThread = nil
+buttons["Auto comer piñas"].MouseButton1Click:Connect(function()
+    estados["Auto comer piñas"] = not estados["Auto comer piñas"]
+    updateButtonColors()
+    if estados["Auto comer piñas"] then
+        autoPiniaThread = task.spawn(function()
+            local player = Players.LocalPlayer
+            local backpack = player:WaitForChild("Backpack")
+            local humanoid = player.Character:WaitForChild("Humanoid")
+            while estados["Auto comer piñas"] do
+                local shake = backpack:FindFirstChild("Tropical Shake")
+                if shake then
+                    warn("🕹 Encontrada Tropical Shake:", shake, "- equipando...")
+                    humanoid:EquipTool(shake)
+                    RunService.Heartbeat:Wait()
+                    if shake.Activate then
+                        shake:Activate()
+                        warn("🍹 Activada Tropical Shake:", shake)
+                    else
+                        warn("⚠️ No se pudo activar Tropical Shake (no soporta Activate)")
+                    end
+                else
+                    task.wait(1)
+                end
+                task.wait(0.3)
+            end
+        end)
     else
-        warn("Error cargando script 'Auto Kill a todos'")
+        if autoPiniaThread then
+            task.cancel(autoPiniaThread)
+            autoPiniaThread = nil
+        end
     end
 end)
+-- FIN DE LOGICA DE BOTONES
+
+-- El resto del código queda igual
