@@ -35,7 +35,7 @@ local titleButton = Instance.new("TextButton")
 titleButton.Size = UDim2.new(1,0,1,0)
 titleButton.BackgroundTransparency = 1
 titleButton.Text = "ATLASXKILLS"
-titleButton.TextColor3 = Color3.fromRGB(255,150,80)
+titleButton.TextColor3 = Color3.fromRGB(0,150,80)
 titleButton.Font = Enum.Font.GothamBold
 titleButton.TextSize = 20
 titleButton.TextXAlignment = Enum.TextXAlignment.Center
@@ -107,7 +107,7 @@ autoKillPanel.Parent = mainFrame
 
 local titleAK = Instance.new("TextLabel")
 titleAK.Size = UDim2.new(1,0,0,30)
-titleAK.BackgroundColor3 = Color3.fromRGB(50,50,50)
+titleAK.BackgroundColor3 = Color3.fromRGB(0,150,80)
 titleAK.Text = "Selecionar Jugador kill"
 titleAK.TextColor3 = Color3.fromRGB(255,255,255)
 titleAK.Font = Enum.Font.SourceSansBold
